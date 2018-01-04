@@ -1,6 +1,5 @@
 import xml.etree.cElementTree as ET
 import re
-import pprint
 
 OSMFILE = "berkeley_california.osm"
 
@@ -22,5 +21,12 @@ def audit(osmfile):
 	elem.clear()
 	return zip_codes
 
+def update_zipcode(zipcode):
+    if re.match(r'^(\d{5})-\d{4}$', zipcode):
+        zipcode = re.findall(r'^(\d{5})-\d{4}$', zipcode)[0]
+    return zipcode
+
 zipcodes = audit(OSMFILE)
-pprint.pprint(dict(zipcodes))
+for zipcode in zipcodes.keys():
+    better_zipcode = update_zipcode(zipcode)
+    print zipcode, "=>", better_zipcode

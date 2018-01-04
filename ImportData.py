@@ -7,6 +7,9 @@ import xml.etree.cElementTree as ET
 import cerberus
 import schema
 
+import CleanStreetNames
+import CleanPostalCodes
+
 OSM_PATH = "berkeley_california.osm"
 
 NODES_PATH = "nodes.csv"
@@ -27,26 +30,6 @@ NODE_TAGS_FIELDS = ['id', 'key', 'value', 'type']
 WAY_FIELDS = ['id', 'user', 'uid', 'version', 'changeset', 'timestamp']
 WAY_TAGS_FIELDS = ['id', 'key', 'value', 'type']
 WAY_NODES_FIELDS = ['id', 'node_id', 'position']
-
-# ================================================== #
-#               Clean Street Names                   #
-# ================================================== #
-expected = ["Street", "Avenue", "Boulevard", "Drive", "Court", "Place", "Square", "Lane", "Road", 
-            "Trail", "Parkway", "Commons", "Alameda", "Broadway", "Circle", "Freeway", "Hall",
-            "Highway", "Loma", "Path", "Plaza", "Steps", "Terrace", "View", "Walk", "Way", "Cut",
-            "10675", "155", "411", "E", "H", "M"]
-
-mapping = { "St": "Street",
-            "Ave": "Avenue",
-            "Blvd": "Boulevard"
-            }
-
-def update_name(name, mapping):
-    m = street_type_re.search(name)
-    if m.group() not in expected:
-        if m.group() in mapping.keys():
-            name = re.sub(m.group(), mapping[m.group()], name)
-    return name
 
 # ================================================== #
 #               Shape Element                        #
@@ -72,7 +55,9 @@ def shape_element(element, node_attr_fields=NODE_FIELDS, way_attr_fields=WAY_FIE
                 node_tags['type'] = child.attrib['k'].split(":", 1)[0]             
                 # Use cleaning function:
                 if child.attrib['k'] == 'addr:street':
-                    node_tags['value'] = update_name(child.attrib['v'], mapping)
+                    node_tags['value'] = CleanStreetNames.update_name(child.attrib['v'], CleanStreetNames.mapping)
+                elif child.attrib['k'] == 'addr:postcode':
+                    node_tags['value'] = CleanPostalCodes.update_zipcode(child.attrib['v'])
                 else:
                     node_tags['value'] = child.attrib['v']
             else:
@@ -81,7 +66,9 @@ def shape_element(element, node_attr_fields=NODE_FIELDS, way_attr_fields=WAY_FIE
                 node_tags['id'] = element.attrib['id']
                 # Use cleaning function:
                 if child.attrib['k'] == 'addr:street':
-                    node_tags['value'] = update_name(child.attrib['v'], mapping)
+                    node_tags['value'] = CleanStreetNames.update_name(child.attrib['v'], CleanStreetNames.mapping)
+                elif child.attrib['k'] == 'addr:postcode':
+                    node_tags['value'] = CleanPostalCodes.update_zipcode(child.attrib['v'])
                 else:
                     node_tags['value'] = child.attrib['v']
             tags.append(node_tags)
@@ -107,7 +94,9 @@ def shape_element(element, node_attr_fields=NODE_FIELDS, way_attr_fields=WAY_FIE
                     way_tag['type'] = child.attrib['k'].split(":", 1)[0]
                     # Use cleaning function:
                     if child.attrib['k'] == 'addr:street':
-                        way_tag['value'] = update_name(child.attrib['v'], mapping)
+                        way_tag['value'] = CleanStreetNames.update_name(child.attrib['v'], CleanStreetNames.mapping)
+                    elif child.attrib['k'] == 'addr:postcode':
+                        way_tag['value'] = CleanPostalCodes.update_zipcode(child.attrib['v'])
                     else:
                         way_tag['value'] = child.attrib['v']
                 else:
@@ -116,7 +105,9 @@ def shape_element(element, node_attr_fields=NODE_FIELDS, way_attr_fields=WAY_FIE
                     way_tag['id'] = element.attrib['id']
                     # Use cleaning function:
                     if child.attrib['k'] == 'addr:street':
-                        way_tag['value'] = update_name(child.attrib['v'], mapping)
+                        way_tag['value'] = CleanStreetNames.update_name(child.attrib['v'], CleanStreetNames.mapping)
+                    elif child.attrib['k'] == 'addr:postcode':
+                        way_tag['value'] = CleanPostalCodes.update_zipcode(child.attrib['v'])
                     else:
                         way_tag['value'] = child.attrib['v']
                 tags.append(way_tag)
