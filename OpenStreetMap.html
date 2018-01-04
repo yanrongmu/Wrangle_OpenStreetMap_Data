@@ -12172,19 +12172,48 @@ The complete code can be found here: <strong><a href="https://github.com/yanrong
 <div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython2"><pre><span></span><span class="k">def</span> <span class="nf">audit_zipcodes</span><span class="p">(</span><span class="n">osmfile</span><span class="p">):</span>
-    <span class="c1"># iter through all zip codes, collect all the zip codes that does not start with 947</span>
+<div class=" highlight hl-ipython2"><pre><span></span><span class="k">def</span> <span class="nf">audit_zipcode</span><span class="p">(</span><span class="n">zip_codes</span><span class="p">,</span> <span class="n">zipcode_name</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^(947)\d{2}$&#39;</span><span class="p">,</span> <span class="n">zipcode_name</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">zipcode_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">zip_codes</span><span class="p">:</span>
+            <span class="n">zip_codes</span><span class="p">[</span><span class="n">zipcode_name</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">zip_codes</span><span class="p">[</span><span class="n">zipcode_name</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+<span class="k">def</span> <span class="nf">audit</span><span class="p">(</span><span class="n">osmfile</span><span class="p">):</span>
     <span class="n">osm_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">osmfile</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
     <span class="n">zip_codes</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">event</span><span class="p">,</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">ET</span><span class="o">.</span><span class="n">iterparse</span><span class="p">(</span><span class="n">osm_file</span><span class="p">,</span> <span class="n">events</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;start&quot;</span><span class="p">,)):</span>
         <span class="k">if</span> <span class="n">elem</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s2">&quot;node&quot;</span> <span class="ow">or</span> <span class="n">elem</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s2">&quot;way&quot;</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">elem</span><span class="o">.</span><span class="n">iter</span><span class="p">(</span><span class="s2">&quot;tag&quot;</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">tag</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;k&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;addr:postcode&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">tag</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;947&#39;</span><span class="p">):</span>
-                    <span class="k">if</span> <span class="n">tag</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">zip_codes</span><span class="p">:</span>
-                        <span class="n">zip_codes</span><span class="p">[</span><span class="n">tag</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">zip_codes</span><span class="p">[</span><span class="n">tag</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">]]</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">tag</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;k&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;addr:postcode&quot;</span><span class="p">:</span>
+                    <span class="n">audit_zipcode</span><span class="p">(</span><span class="n">zip_codes</span><span class="p">,</span> <span class="n">tag</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">])</span>
+    <span class="n">elem</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">zip_codes</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span></span><span class="p">{</span><span class="s1">&#39;93710&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+ <span class="s1">&#39;94109&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+ <span class="s1">&#39;94530&#39;</span><span class="p">:</span> <span class="mi">73</span><span class="p">,</span>
+ <span class="s1">&#39;94605&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+ <span class="s1">&#39;94607&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+ <span class="s1">&#39;94608&#39;</span><span class="p">:</span> <span class="mi">101</span><span class="p">,</span>
+ <span class="s1">&#39;94609&#39;</span><span class="p">:</span> <span class="mi">36</span><span class="p">,</span>
+ <span class="s1">&#39;94611&#39;</span><span class="p">:</span> <span class="mi">1075</span><span class="p">,</span>
+ <span class="s1">&#39;94618&#39;</span><span class="p">:</span> <span class="mi">74</span><span class="p">,</span>
+ <span class="s1">&#39;94720-1076&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+ <span class="s1">&#39;94804&#39;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span>
+ <span class="s1">&#39;95430&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+ <span class="s1">&#39;95476&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}</span>
 </pre></div>
 
 </div>
@@ -12196,28 +12225,9 @@ The complete code can be found here: <strong><a href="https://github.com/yanrong
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>94109 1 <br>
-94607 1 <br>
-94605 1 <br>
-95476 2 <br>
-94804 16 <br>
-94618 74 <br>
-94608 101 <br>
-94609 36 <br>
-93710 1 <br>
-94530 73 <br>
-94611 1075 <br>
-95430 2</p>
-
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
 <p>Here we can see that almost every incorrect postal codes are started with 94, that means they are actually very near to Berkeley. <br>
-After checking all of those codes, I found that they are basically postal codes for Oakland, Richmond, and San Francisco, which are neighbors of Berkeley.</p>
+After checking all of those codes, I found that they are basically postal codes for Oakland, Richmond, and San Francisco, which are neighbors of Berkeley. <br>
+Note that there is one postal code ('94720-1076') which is not written by standard form.</p>
 
 </div>
 </div>
@@ -12237,7 +12247,7 @@ After checking all of those codes, I found that they are basically postal codes 
 <p>Some of the problems I observed: <br></p>
 <ul>
 <li>The format of street names is not uniform, because some of them are over abbreviated. I need to clean those later.</li>
-<li>The other problem is some inappropriate postal codes, which actually from the neighbors of Berkeley.</li>
+<li>The other problem is some inappropriate postal codes, which most of them are actually from the neighbors of Berkeley. For those postal codes, I won't change them here. But the one which is not written by standard form should be cleaned because of lack of standardization.</li>
 </ul>
 
 </div>
@@ -12299,6 +12309,61 @@ Shattuck Ave =&gt; Shattuck Avenue <br>
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Cleaning-Postal-Codes">Cleaning Postal Codes<a class="anchor-link" href="#Cleaning-Postal-Codes">&#194;&#182;</a></h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Now I need to clean postal codes with a standard form. <br>
+The complete code can be found here: <strong><a href="https://github.com/yanrongmu/Wrangle_OpenStreetMap_Data/blob/master/CleanPostalCodes.py">CleanPostalCodes.py</a></strong></p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span></span><span class="k">def</span> <span class="nf">update_zipcode</span><span class="p">(</span><span class="n">zipcode</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^(\d{5})-\d{4}$&#39;</span><span class="p">,</span> <span class="n">zipcode</span><span class="p">):</span>
+        <span class="n">zipcode</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^(\d{5})-\d{4}$&#39;</span><span class="p">,</span> <span class="n">zipcode</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">zipcode</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>94109 =&gt; 94109 <br>
+94607 =&gt; 94607 <br>
+94605 =&gt; 94605 <br>
+95476 =&gt; 95476 <br>
+94804 =&gt; 94804 <br>
+94618 =&gt; 94618 <br>
+94608 =&gt; 94608 <br>
+94609 =&gt; 94609 <br>
+93710 =&gt; 93710 <br>
+94720-1076 =&gt; 94720 <br>
+94530 =&gt; 94530 <br>
+94611 =&gt; 94611 <br>
+95430 =&gt; 95430</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Importing-Data-Into-SQL">Importing Data Into SQL<a class="anchor-link" href="#Importing-Data-Into-SQL">&#194;&#182;</a></h2>
 </div>
 </div>
@@ -12349,7 +12414,10 @@ Defined schema for the .csv files and the eventual tables can be found here: <st
 <div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython2"><pre><span></span><span class="k">def</span> <span class="nf">shape_element</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">node_attr_fields</span><span class="o">=</span><span class="n">NODE_FIELDS</span><span class="p">,</span> <span class="n">way_attr_fields</span><span class="o">=</span><span class="n">WAY_FIELDS</span><span class="p">,</span>
+<div class=" highlight hl-ipython2"><pre><span></span><span class="kn">import</span> <span class="nn">CleanStreetNames</span>
+<span class="kn">import</span> <span class="nn">CleanPostalCodes</span>
+
+<span class="k">def</span> <span class="nf">shape_element</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">node_attr_fields</span><span class="o">=</span><span class="n">NODE_FIELDS</span><span class="p">,</span> <span class="n">way_attr_fields</span><span class="o">=</span><span class="n">WAY_FIELDS</span><span class="p">,</span>
                   <span class="n">problem_chars</span><span class="o">=</span><span class="n">PROBLEMCHARS</span><span class="p">,</span> <span class="n">default_tag_type</span><span class="o">=</span><span class="s1">&#39;regular&#39;</span><span class="p">):</span>
     <span class="n">node_attribs</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">way_attribs</span> <span class="o">=</span> <span class="p">{}</span>
@@ -12370,7 +12438,9 @@ Defined schema for the .csv files and the eventual tables can be found here: <st
                 <span class="n">node_tags</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;k&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>             
                 <span class="c1"># Use cleaning function:</span>
                 <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;k&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;addr:street&#39;</span><span class="p">:</span>
-                    <span class="n">node_tags</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">update_name</span><span class="p">(</span><span class="n">child</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">],</span> <span class="n">mapping</span><span class="p">)</span>
+                    <span class="n">node_tags</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">CleanStreetNames</span><span class="o">.</span><span class="n">update_name</span><span class="p">(</span><span class="n">child</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">],</span> <span class="n">CleanStreetNames</span><span class="o">.</span><span class="n">mapping</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">child</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;k&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;addr:postcode&#39;</span><span class="p">:</span>
+                    <span class="n">node_tags</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">CleanPostalCodes</span><span class="o">.</span><span class="n">update_zipcode</span><span class="p">(</span><span class="n">child</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">])</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">node_tags</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
@@ -12379,7 +12449,9 @@ Defined schema for the .csv files and the eventual tables can be found here: <st
                 <span class="n">node_tags</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span>
                 <span class="c1"># Use cleaning function:</span>
                 <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;k&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;addr:street&#39;</span><span class="p">:</span>
-                    <span class="n">node_tags</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">update_name</span><span class="p">(</span><span class="n">child</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">],</span> <span class="n">mapping</span><span class="p">)</span>
+                    <span class="n">node_tags</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">CleanStreetNames</span><span class="o">.</span><span class="n">update_name</span><span class="p">(</span><span class="n">child</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">],</span> <span class="n">CleanStreetNames</span><span class="o">.</span><span class="n">mapping</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">child</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;k&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;addr:postcode&#39;</span><span class="p">:</span>
+                    <span class="n">node_tags</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">CleanPostalCodes</span><span class="o">.</span><span class="n">update_zipcode</span><span class="p">(</span><span class="n">child</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">])</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">node_tags</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">]</span>
             <span class="n">tags</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node_tags</span><span class="p">)</span>
@@ -12405,7 +12477,9 @@ Defined schema for the .csv files and the eventual tables can be found here: <st
                     <span class="n">way_tag</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;k&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
                     <span class="c1"># Use cleaning function:</span>
                     <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;k&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;addr:street&#39;</span><span class="p">:</span>
-                        <span class="n">way_tag</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">update_name</span><span class="p">(</span><span class="n">child</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">],</span> <span class="n">mapping</span><span class="p">)</span>
+                        <span class="n">way_tag</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">CleanStreetNames</span><span class="o">.</span><span class="n">update_name</span><span class="p">(</span><span class="n">child</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">],</span> <span class="n">CleanStreetNames</span><span class="o">.</span><span class="n">mapping</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="n">child</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;k&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;addr:postcode&#39;</span><span class="p">:</span>
+                        <span class="n">way_tag</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">CleanPostalCodes</span><span class="o">.</span><span class="n">update_zipcode</span><span class="p">(</span><span class="n">child</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">])</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">way_tag</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">]</span>
                 <span class="k">else</span><span class="p">:</span>
@@ -12414,7 +12488,9 @@ Defined schema for the .csv files and the eventual tables can be found here: <st
                     <span class="n">way_tag</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span>
                     <span class="c1"># Use cleaning function:</span>
                     <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;k&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;addr:street&#39;</span><span class="p">:</span>
-                        <span class="n">way_tag</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">update_name</span><span class="p">(</span><span class="n">child</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">],</span> <span class="n">mapping</span><span class="p">)</span>
+                        <span class="n">way_tag</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">CleanStreetNames</span><span class="o">.</span><span class="n">update_name</span><span class="p">(</span><span class="n">child</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">],</span> <span class="n">CleanStreetNames</span><span class="o">.</span><span class="n">mapping</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="n">child</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;k&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;addr:postcode&#39;</span><span class="p">:</span>
+                        <span class="n">way_tag</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">CleanPostalCodes</span><span class="o">.</span><span class="n">update_zipcode</span><span class="p">(</span><span class="n">child</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">])</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">way_tag</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">]</span>
                 <span class="n">tags</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">way_tag</span><span class="p">)</span>
@@ -12742,7 +12818,8 @@ RichRico,18537</p>
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>We can notice that the top contributing users plays more important roles on the performance of data. I think that could make the data has some bias or mistakes caused by top contributing users. So, if user ID can be displayed and encourage others to make changes on information created by those top contributing users, then this map dataset would be more precise, I hope.</p>
+<p>We can notice that the top contributing users plays more important roles on the performance of data. I think that could make the data has some bias or mistakes caused by top contributing users. So, if user ID can be displayed and encourage others to make changes on information created by those top contributing users, then this map dataset would be more precise, I hope. <br>
+However, the potential problem is how can we decide whose post is more precise. This implementation encourages every user to fix others' post, but what if some users change the correct information to the wrong one? So, I think we also need to consider the way to evaluate precision of information if we decided to consider this implementation.</p>
 
 </div>
 </div>
